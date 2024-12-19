@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  database-mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      - MYSQL_DATABASE=my2
+      - MYSQL_ROOT_PASSWORD=Duyngo123@
+    ports:
+      - '3307:3306'
+    expose:
+      - 3306
+
+  backend:
+    build:
+      context: ../BE
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - DB_PORT=3306
+      - DB_HOST=database-mysql
+      - DB_DATABASE_NAME=my2
+      - DB_USERNAME=root
+      - DB_PASSWORD=Duyngo123@
+      - URL_REACT=http://localhost
+      # - DB_HOST=host.docker.internal
+    ports:
+      - 8080:8080
+    expose:
+      - 8080
+   # Nginx Service (Sử dụng image chính thức của Nginx)
+  nginx:
+    image: nginx:1.23.3 # Sử dụng image chính thức của Nginx
+    ports:
+      - 80:80 # Ánh xạ cổng 80 của máy chủ với cổng 80 của container nginx
+    volumes:
+      - ./../FE/build:/usr/share/nginx/html # Mount thư mục build của frontend vào nginx
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro # Mount file cấu hình nginx vào container
+    depends_on:
+      - backend # Đảm bảo nginx sẽ khởi động sau backend
